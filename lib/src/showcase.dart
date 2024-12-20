@@ -101,6 +101,11 @@ class Showcase extends StatefulWidget {
   /// Default to [Colors.white]
   final Color tooltipBackgroundColor;
 
+  /// Defines background gradient for tooltip widget.
+  ///  If provided, [tooltipBackgroundColor] will be ignored.
+  /// For now only top to bottom is supported
+  final Gradient? tooltipBackgroundGradient;
+
   /// Defines text color of default tooltip when [titleTextStyle] and
   /// [descTextStyle] is not provided.
   ///
@@ -270,8 +275,11 @@ class Showcase extends StatefulWidget {
   /// Defines the margin for the tooltip.
   /// Which is from 0 to [toolTipSlideEndDistance].
   ///
-  /// Defaults to 14.
-  final double toolTipMargin;
+  /// Default Value for [Showcase] widget is:
+  /// ```dart
+  /// EdgeInsets.symmetric(vertical: 8, horizontal: 8)
+  /// ```
+  final EdgeInsets toolTipMargin;
 
   /// Provides toolTip action widgets at bottom in tooltip.
   ///
@@ -294,6 +302,10 @@ class Showcase extends StatefulWidget {
   /// This is used to override the [ShowCaseWidget.enableAutoScroll] behaviour
   /// for this showcase.
   final bool? enableAutoScroll;
+
+  final Widget? customUpArrow;
+
+  final Widget? customDownArrow;
 
   /// Highlights a specific widget on the screen with an informative tooltip.
   ///
@@ -379,6 +391,7 @@ class Showcase extends StatefulWidget {
     this.titleTextStyle,
     this.descTextStyle,
     this.tooltipBackgroundColor = Colors.white,
+    this.tooltipBackgroundGradient,
     this.textColor = Colors.black,
     this.scrollLoadingWidget = const CircularProgressIndicator(
       valueColor: AlwaysStoppedAnimation(Colors.white),
@@ -410,11 +423,13 @@ class Showcase extends StatefulWidget {
     this.onBarrierClick,
     this.disableBarrierInteraction = false,
     this.toolTipSlideEndDistance = 7,
-    this.toolTipMargin = 14,
+    this.toolTipMargin = const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
     this.tooltipActions,
     this.tooltipActionConfig,
     this.scrollAlignment = 0.5,
     this.enableAutoScroll,
+    this.customUpArrow,
+    this.customDownArrow,
   })  : height = null,
         width = null,
         container = null,
@@ -511,6 +526,8 @@ class Showcase extends StatefulWidget {
     this.tooltipActionConfig,
     this.scrollAlignment = 0.5,
     this.enableAutoScroll,
+    this.customUpArrow,
+    this.customDownArrow,
   })  : showArrow = false,
         onToolTipClick = null,
         scaleAnimationDuration = const Duration(milliseconds: 300),
@@ -526,6 +543,7 @@ class Showcase extends StatefulWidget {
         titleTextStyle = null,
         descTextStyle = null,
         tooltipBackgroundColor = Colors.white,
+        tooltipBackgroundGradient = null,
         textColor = Colors.black,
         tooltipBorderRadius = null,
         tooltipPadding = const EdgeInsets.symmetric(vertical: 8),
@@ -533,7 +551,7 @@ class Showcase extends StatefulWidget {
         descriptionPadding = null,
         titleTextDirection = null,
         descriptionTextDirection = null,
-        toolTipMargin = 14,
+        toolTipMargin = const EdgeInsets.symmetric(vertical: 8),
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
             "overlay opacity must be between 0 and 1."),
         assert(onBarrierClick == null || disableBarrierInteraction == false,
@@ -787,6 +805,7 @@ class _ShowcaseState extends State<Showcase> {
             descTextStyle: widget.descTextStyle,
             container: widget.container,
             tooltipBackgroundColor: widget.tooltipBackgroundColor,
+            tooltopBackgroundGradient: widget.tooltipBackgroundGradient,
             textColor: widget.textColor,
             showArrow: widget.showArrow,
             contentHeight: widget.height,
@@ -812,6 +831,10 @@ class _ShowcaseState extends State<Showcase> {
             toolTipMargin: widget.toolTipMargin,
             tooltipActionConfig: _getTooltipActionConfig(),
             tooltipActions: _getTooltipActions(),
+            currentStep: showCaseWidgetState.activeWidgetId ?? 0,
+            totalSteps: showCaseWidgetState.ids?.length ?? 0,
+            customUpArrow: widget.customUpArrow,
+            customDownArrow: widget.customDownArrow,
           ),
         ],
       ],

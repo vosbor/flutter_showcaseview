@@ -276,17 +276,29 @@ class ShowCaseWidgetState extends State<ShowCaseWidget> {
 
   /// Dismiss entire showcase view
   void dismiss() {
+    _onComplete();
+
     if (mounted) setState(_cleanupAfterSteps);
   }
 
   void _onStart() {
-    if (activeWidgetId! < ids!.length) {
-      widget.onStart?.call(activeWidgetId, ids![activeWidgetId!]);
+    final activeWidgetId = this.activeWidgetId;
+    final ids = this.ids;
+
+    if (activeWidgetId == null || ids == null) return;
+
+    if (activeWidgetId < ids.length) {
+      widget.onStart?.call(activeWidgetId, ids[activeWidgetId]);
     }
   }
 
   void _onComplete() {
-    widget.onComplete?.call(activeWidgetId, ids![activeWidgetId!]);
+    final activeWidgetId = this.activeWidgetId;
+    final ids = this.ids;
+
+    if (activeWidgetId == null || ids == null) return;
+
+    widget.onComplete?.call(activeWidgetId, ids[activeWidgetId]);
   }
 
   void _cleanupAfterSteps() {

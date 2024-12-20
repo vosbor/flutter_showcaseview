@@ -10,8 +10,11 @@ class ActionWidget extends StatelessWidget {
     required this.alignment,
     required this.crossAxisAlignment,
     required this.isArrowUp,
+    required this.currentStep,
+    required this.totalSteps,
     this.outSidePadding = EdgeInsets.zero,
     this.width,
+    this.stepsTextStyle,
   });
 
   final TooltipActionConfig tooltipActionConfig;
@@ -21,6 +24,9 @@ class ActionWidget extends StatelessWidget {
   final CrossAxisAlignment crossAxisAlignment;
   final EdgeInsets outSidePadding;
   final bool isArrowUp;
+  final int currentStep;
+  final int totalSteps;
+  final TextStyle? stepsTextStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +41,20 @@ class ActionWidget extends StatelessWidget {
         padding: getWidgetPadding,
         child: Row(
           mainAxisSize: width == null ? MainAxisSize.min : MainAxisSize.max,
-          mainAxisAlignment:
-              width == null ? MainAxisAlignment.start : alignment,
-          crossAxisAlignment: crossAxisAlignment,
+          mainAxisAlignment: width == null ? MainAxisAlignment.end : alignment,
           textBaseline: tooltipActionConfig.textBaseline,
-          children: children,
+          children: [
+            Flexible(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${currentStep + 1}/$totalSteps',
+                  style: tooltipActionConfig.stepsTextStyle,
+                ),
+              ),
+            ),
+            ...children,
+          ],
         ),
       ),
     );
