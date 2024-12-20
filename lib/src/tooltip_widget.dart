@@ -45,6 +45,7 @@ class ToolTipWidget extends StatefulWidget {
   final TextStyle? descTextStyle;
   final Widget? container;
   final Color? tooltipBackgroundColor;
+  final Gradient? tooltopBackgroundGradient;
   final Color? textColor;
   final bool showArrow;
   final double? contentHeight;
@@ -64,10 +65,14 @@ class ToolTipWidget extends StatefulWidget {
   final EdgeInsets? descriptionPadding;
   final TextDirection? titleTextDirection;
   final TextDirection? descriptionTextDirection;
-  final double toolTipSlideEndDistance;
-  final double toolTipMargin;
+  final double tooltipSlideEndDistance;
+  final EdgeInsets tooltipMargin;
   final TooltipActionConfig tooltipActionConfig;
   final List<Widget> tooltipActions;
+  final int currentStep;
+  final int totalSteps;
+  final Widget? customUpArrow;
+  final Widget? customDownArrow;
 
   const ToolTipWidget({
     super.key,
@@ -80,6 +85,7 @@ class ToolTipWidget extends StatefulWidget {
     required this.descTextStyle,
     required this.container,
     required this.tooltipBackgroundColor,
+    required this.tooltopBackgroundGradient,
     required this.textColor,
     required this.showArrow,
     required this.contentHeight,
@@ -96,7 +102,7 @@ class ToolTipWidget extends StatefulWidget {
     required this.tooltipBorderRadius,
     required this.scaleAnimationDuration,
     required this.scaleAnimationCurve,
-    required this.toolTipMargin,
+    required this.tooltipMargin,
     this.scaleAnimationAlignment,
     this.isTooltipDismissed = false,
     this.tooltipPosition,
@@ -104,9 +110,13 @@ class ToolTipWidget extends StatefulWidget {
     this.descriptionPadding,
     this.titleTextDirection,
     this.descriptionTextDirection,
-    this.toolTipSlideEndDistance = 7,
+    this.tooltipSlideEndDistance = 7,
     required this.tooltipActionConfig,
     required this.tooltipActions,
+    required this.currentStep,
+    required this.totalSteps,
+    this.customUpArrow,
+    this.customDownArrow,
   });
 
   @override
@@ -231,8 +241,10 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
     final maxTextWidth = max(titleLength, descriptionLength) + textPadding;
     var maxToolTipWidth = max(toolTipActionSize?.width ?? 0, maxTextWidth);
 
+    final tooltipMarginHorizontal =
+        widget.tooltipMargin.left + widget.tooltipMargin.right;
     final availableSpaceForToolTip =
-        widget.screenSize.width - (2 * widget.toolTipMargin);
+        widget.screenSize.width - (2 * tooltipMarginHorizontal);
 
     // if Width is greater than available size which won't happen we will
     // adjust it to stay in available size
@@ -267,7 +279,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
         (titleSize?.height ?? 0) +
         (descriptionSize?.height ?? 0) +
         arrowHeight +
-        widget.toolTipSlideEndDistance +
+        widget.tooltipSlideEndDistance +
         (toolTipActionSize?.height ??
             widget.tooltipActionConfig.gapBetweenContentAndAction) +
         (widget.contentHeight ?? 0);
@@ -280,8 +292,8 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
       double leftPositionValue = widget.position!.getCenter() - (width * 0.5);
       if ((leftPositionValue + width) > widget.screenSize.width) {
         return null;
-      } else if ((leftPositionValue) < widget.toolTipMargin) {
-        return widget.toolTipMargin;
+      } else if ((leftPositionValue) < widget.tooltipMargin.left) {
+        return widget.tooltipMargin.left;
       } else {
         return leftPositionValue;
       }
@@ -299,7 +311,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
         final rightPosition = widget.position!.getCenter() + (width * 0.5);
 
         return (rightPosition + width) > widget.screenSize.width
-            ? widget.toolTipMargin
+            ? widget.tooltipMargin.right
             : null;
       } else {
         return null;
@@ -361,6 +373,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
     _movingAnimationController = AnimationController(
       duration: widget.movingAnimationDuration,
       vsync: this,
+      upperBound: 0.1,
     );
     _movingAnimation = CurvedAnimation(
       parent: _movingAnimationController,
@@ -386,9 +399,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
         })
         ..forward();
     }
-    if (!widget.disableMovingAnimation) {
-      _movingAnimationController.forward();
-    }
+    //if (!widget.disableMovingAnimation) {
+    _movingAnimationController.forward();
+    //}
   }
 
   void movingAnimationListener() {
@@ -397,9 +410,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
         _movingAnimationController.reverse();
       }
       if (_movingAnimationController.isDismissed) {
-        if (!widget.disableMovingAnimation) {
-          _movingAnimationController.forward();
-        }
+        //if (!widget.disableMovingAnimation) {
+        _movingAnimationController.forward();
+        //}
       }
     });
   }
@@ -428,6 +441,16 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
     _movingAnimationController.dispose();
     _scaleAnimationController.dispose();
     super.dispose();
+  }
+
+  Color? get _arrowColor {
+    if (widget.tooltopBackgroundGradient != null) {
+      return isArrowUp
+          ? widget.tooltopBackgroundGradient?.colors.first
+          : widget.tooltopBackgroundGradient?.colors.last;
+    }
+
+    return widget.tooltipBackgroundColor;
   }
 
   @override
@@ -462,12 +485,15 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
       paddingBottom = _withOutArrowToolTipPadding;
     }
 
-    const arrowWidth = 18.0;
-    const arrowHeight = 9.0;
+    const arrowWidth = 36.0;
+    const arrowHeight = 12.0;
 
     if (!widget.disableScaleAnimation && widget.isTooltipDismissed) {
       _scaleAnimationController.reverse();
     }
+
+    final customArrow =
+        isArrowUp ? widget.customUpArrow : widget.customDownArrow;
 
     if (widget.container == null) {
       return Positioned(
@@ -488,7 +514,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                 begin: Offset.zero,
                 end: Offset(
                   0,
-                  widget.toolTipSlideEndDistance * contentOffsetMultiplier,
+                  widget.tooltipSlideEndDistance * contentOffsetMultiplier,
                 ),
               ).animate(_movingAnimation),
               child: Material(
@@ -522,18 +548,19 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                             Positioned(
                               left: _getArrowLeft(arrowWidth),
                               right: _getArrowRight(arrowWidth),
-                              child: CustomPaint(
-                                painter: _Arrow(
-                                  strokeColor: widget.tooltipBackgroundColor!,
-                                  strokeWidth: 10,
-                                  paintingStyle: PaintingStyle.fill,
-                                  isUpArrow: isArrowUp,
-                                ),
-                                child: const SizedBox(
-                                  height: arrowHeight,
-                                  width: arrowWidth,
-                                ),
-                              ),
+                              child: customArrow ??
+                                  CustomPaint(
+                                    painter: _Arrow(
+                                      strokeColor: _arrowColor ?? Colors.white,
+                                      strokeWidth: 10,
+                                      paintingStyle: PaintingStyle.fill,
+                                      isUpArrow: isArrowUp,
+                                    ),
+                                    child: const SizedBox(
+                                      height: arrowHeight,
+                                      width: arrowWidth,
+                                    ),
+                                  ),
                             ),
                           Padding(
                             padding: EdgeInsets.only(
@@ -551,7 +578,10 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                                     left: 0,
                                     right: 0,
                                   ),
-                                  color: widget.tooltipBackgroundColor,
+                                  decoration: BoxDecoration(
+                                    color: widget.tooltipBackgroundColor,
+                                    gradient: widget.tooltopBackgroundGradient,
+                                  ),
                                   child: Column(
                                     children: <Widget>[
                                       if (widget.title != null)
@@ -631,6 +661,8 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                                           _tooltipActionSize != null)
                                         _getActionWidget(insideWidget: true),
                                     ],
+
+                                    //),
                                   ),
                                 ),
                               ),
@@ -664,7 +696,7 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                 begin: Offset.zero,
                 end: Offset(
                   0,
-                  widget.toolTipSlideEndDistance * contentOffsetMultiplier,
+                  widget.tooltipSlideEndDistance * contentOffsetMultiplier,
                 ),
               ).animate(_movingAnimation),
               child: Material(
@@ -739,6 +771,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
           width: null,
           crossAxisAlignment: widget.tooltipActionConfig.crossAxisAlignment,
           isArrowUp: true,
+          currentStep: widget.currentStep,
+          totalSteps: widget.totalSteps,
+          stepsTextStyle: widget.tooltipActionConfig.stepsTextStyle,
           children: widget.tooltipActions,
         ),
       );
@@ -758,6 +793,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
       crossAxisAlignment: widget.tooltipActionConfig.crossAxisAlignment,
       width: _tooltipActionSize == null ? null : tooltipWidth,
       isArrowUp: insideWidget || isArrowUp,
+      currentStep: widget.currentStep,
+      totalSteps: widget.totalSteps,
+      stepsTextStyle: widget.tooltipActionConfig.stepsTextStyle,
       children: widget.tooltipActions,
     );
   }
@@ -783,11 +821,13 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
     /// - 2(margin provided to tooltip from the end of the screen)
     /// We have calculated this to get the exact amount of width this text can
     /// take so height can be calculated precisely for text
+    final tooltipMarginHorizontal =
+        widget.tooltipMargin.left + widget.tooltipMargin.right;
     final availableSpaceForText =
         (widget.position?.screenWidth ?? MediaQuery.of(context).size.width) -
             (padding ?? zeroPadding).horizontal -
             (widget.tooltipPadding ?? zeroPadding).horizontal -
-            (2 * widget.toolTipMargin);
+            (2 * tooltipMarginHorizontal);
 
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: style),

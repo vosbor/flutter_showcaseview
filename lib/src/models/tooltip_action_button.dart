@@ -36,6 +36,8 @@ class TooltipActionButton {
   /// If type is provided then it will take type name
   final String? name;
 
+  final String? nameLast;
+
   /// To Provide a onTap for action
   ///
   /// If type is provided then it will take type's OnTap
@@ -86,6 +88,7 @@ class TooltipActionButton {
     this.leadIcon,
     this.tailIcon,
     this.name,
+    this.nameLast,
     this.onTap,
     this.hideActionWidgetForShowcase = const [],
     this.border,
@@ -102,6 +105,7 @@ class TooltipActionButton {
         tailIcon = null,
         type = null,
         name = null,
+        nameLast = null,
         onTap = null,
         border = null;
 }

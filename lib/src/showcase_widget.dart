@@ -34,7 +34,7 @@ class ShowCaseWidget extends StatefulWidget {
   final Function(int?, GlobalKey)? onStart;
 
   /// Triggered every time on completion of each showcase
-  final Function(int?, GlobalKey)? onComplete;
+  final Function(int?, GlobalKey, List<GlobalKey>)? onComplete;
 
   /// Whether all showcases will auto sequentially start
   /// having time interval of [autoPlayDelay] .
@@ -276,17 +276,32 @@ class ShowCaseWidgetState extends State<ShowCaseWidget> {
 
   /// Dismiss entire showcase view
   void dismiss() {
-    if (mounted) setState(_cleanupAfterSteps);
+    if (!mounted) return;
+
+    setState(() {
+      _onComplete();
+      _cleanupAfterSteps();
+    });
   }
 
   void _onStart() {
-    if (activeWidgetId! < ids!.length) {
-      widget.onStart?.call(activeWidgetId, ids![activeWidgetId!]);
+    final activeWidgetId = this.activeWidgetId;
+    final ids = this.ids;
+
+    if (activeWidgetId == null || ids == null) return;
+
+    if (activeWidgetId < ids.length) {
+      widget.onStart?.call(activeWidgetId, ids[activeWidgetId]);
     }
   }
 
   void _onComplete() {
-    widget.onComplete?.call(activeWidgetId, ids![activeWidgetId!]);
+    final activeWidgetId = this.activeWidgetId;
+    final ids = this.ids;
+
+    if (activeWidgetId == null || ids == null) return;
+
+    widget.onComplete?.call(activeWidgetId, ids[activeWidgetId], ids);
   }
 
   void _cleanupAfterSteps() {
@@ -296,11 +311,17 @@ class ShowCaseWidgetState extends State<ShowCaseWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final builder = Builder(
+      builder: widget.builder,
+    );
+
+    // if (activeWidgetId == null) {
+    //   return builder;
+    // }
+
     return _InheritedShowCaseView(
       activeWidgetIds: ids?.elementAt(activeWidgetId!),
-      child: Builder(
-        builder: widget.builder,
-      ),
+      child: builder,
     );
   }
 }

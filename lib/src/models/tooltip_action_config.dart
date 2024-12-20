@@ -14,6 +14,7 @@ class TooltipActionConfig {
     this.gapBetweenContentAndAction = 10,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.textBaseline,
+    this.stepsTextStyle,
   }) : assert(
           !identical(crossAxisAlignment, CrossAxisAlignment.stretch),
           'Can not use stretch as height is unbounded',
@@ -50,4 +51,6 @@ class TooltipActionConfig {
   /// This must be set if using baseline alignment. There is no default because there is no
   /// way for the framework to know the correct baseline _a priori_.
   final TextBaseline? textBaseline;
+
+  final TextStyle? stepsTextStyle;
 }

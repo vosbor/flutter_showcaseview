@@ -7,6 +7,7 @@ class TooltipActionButtonWidget extends StatelessWidget {
     super.key,
     required this.config,
     required this.showCaseState,
+    required this.isLast,
   });
 
   /// This will provide the configuration for the action buttons
@@ -16,9 +17,15 @@ class TooltipActionButtonWidget extends StatelessWidget {
   /// showcase navigation
   final ShowCaseWidgetState showCaseState;
 
+  final bool isLast;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final name = isLast
+        ? (config.nameLast ?? config.name ?? config.type?.actionName ?? '')
+        : (config.name ?? config.type?.actionName ?? '');
 
     return config.button ??
         GestureDetector(
@@ -40,7 +47,7 @@ class TooltipActionButtonWidget extends StatelessWidget {
                     child: config.leadIcon?.icon,
                   ),
                 Text(
-                  config.name ?? config.type?.actionName ?? '',
+                  name,
                   style: config.textStyle,
                 ),
                 if (config.tailIcon != null)

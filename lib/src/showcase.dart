@@ -101,6 +101,11 @@ class Showcase extends StatefulWidget {
   /// Default to [Colors.white]
   final Color tooltipBackgroundColor;
 
+  /// Defines background gradient for tooltip widget.
+  ///  If provided, [tooltipBackgroundColor] will be ignored.
+  /// For now only top to bottom is supported
+  final Gradient? tooltipBackgroundGradient;
+
   /// Defines text color of default tooltip when [titleTextStyle] and
   /// [descTextStyle] is not provided.
   ///
@@ -240,10 +245,10 @@ class Showcase extends StatefulWidget {
   final bool disableBarrierInteraction;
 
   /// Defines motion range for tooltip slide animation.
-  /// Which is from 0 to [toolTipSlideEndDistance].
+  /// Which is from 0 to [tooltipSlideEndDistance].
   ///
   /// Defaults to 7.
-  final double toolTipSlideEndDistance;
+  final double tooltipSlideEndDistance;
 
   /// Title widget alignment within tooltip widget
   ///
@@ -268,10 +273,13 @@ class Showcase extends StatefulWidget {
   final TextAlign descriptionTextAlign;
 
   /// Defines the margin for the tooltip.
-  /// Which is from 0 to [toolTipSlideEndDistance].
+  /// Which is from 0 to [tooltipSlideEndDistance].
   ///
-  /// Defaults to 14.
-  final double toolTipMargin;
+  /// Default Value for [Showcase] widget is:
+  /// ```dart
+  /// EdgeInsets.symmetric(vertical: 8, horizontal: 8)
+  /// ```
+  final EdgeInsets tooltipMargin;
 
   /// Provides toolTip action widgets at bottom in tooltip.
   ///
@@ -294,6 +302,10 @@ class Showcase extends StatefulWidget {
   /// This is used to override the [ShowCaseWidget.enableAutoScroll] behaviour
   /// for this showcase.
   final bool? enableAutoScroll;
+
+  final Widget? customUpArrow;
+
+  final Widget? customDownArrow;
 
   /// Highlights a specific widget on the screen with an informative tooltip.
   ///
@@ -351,8 +363,8 @@ class Showcase extends StatefulWidget {
   ///   - `scrollLoadingWidget`: A widget to display while content is loading (for infinite scrolling scenarios).
   ///   - `blurValue`: The amount of background blur applied during the showcase.
   ///   - `tooltipPosition`: The position of the tooltip relative to the showcased widget.
-  ///   - `toolTipSlideEndDistance`: The distance the tooltip slides in from the edge of the screen (defaults to 7dp).
-  ///   - `toolTipMargin`: The margin around the tooltip (defaults to 14dp).
+  ///   - `tooltipSlideEndDistance`: The distance the tooltip slides in from the edge of the screen (defaults to 7dp).
+  ///   - `tooltipMargin`: The margin around the tooltip (defaults to 14dp).
   ///   - `tooltipActions`: A list of custom actions (widgets) to display within the tooltip.
   ///   - `tooltipActionConfig`: Configuration options for custom tooltip actions.
   ///   - `scrollAlignment`: Defines the alignment for the auto scroll function.
@@ -379,6 +391,7 @@ class Showcase extends StatefulWidget {
     this.titleTextStyle,
     this.descTextStyle,
     this.tooltipBackgroundColor = Colors.white,
+    this.tooltipBackgroundGradient,
     this.textColor = Colors.black,
     this.scrollLoadingWidget = const CircularProgressIndicator(
       valueColor: AlwaysStoppedAnimation(Colors.white),
@@ -409,12 +422,14 @@ class Showcase extends StatefulWidget {
     this.descriptionTextDirection,
     this.onBarrierClick,
     this.disableBarrierInteraction = false,
-    this.toolTipSlideEndDistance = 7,
-    this.toolTipMargin = 14,
+    this.tooltipSlideEndDistance = 7,
+    this.tooltipMargin = const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
     this.tooltipActions,
     this.tooltipActionConfig,
     this.scrollAlignment = 0.5,
     this.enableAutoScroll,
+    this.customUpArrow,
+    this.customDownArrow,
   })  : height = null,
         width = null,
         container = null,
@@ -464,7 +479,7 @@ class Showcase extends StatefulWidget {
   /// - `disableBarrierInteraction`: Disables user interaction with the area outside the showcase overlay.
   ///
   /// **Advanced:**
-  /// - `toolTipSlideEndDistance`: The distance the tooltip slides in from the edge of the screen (defaults to 7dp).
+  /// - `tooltipSlideEndDistance`: The distance the tooltip slides in from the edge of the screen (defaults to 7dp).
   /// - `tooltipActions`: A list of custom actions (widgets) to display within the tooltip.
   /// - `tooltipActionConfig`: Configuration options for custom tooltip actions.
   ///
@@ -506,11 +521,13 @@ class Showcase extends StatefulWidget {
     this.tooltipPosition,
     this.onBarrierClick,
     this.disableBarrierInteraction = false,
-    this.toolTipSlideEndDistance = 7,
+    this.tooltipSlideEndDistance = 7,
     this.tooltipActions,
     this.tooltipActionConfig,
     this.scrollAlignment = 0.5,
     this.enableAutoScroll,
+    this.customUpArrow,
+    this.customDownArrow,
   })  : showArrow = false,
         onToolTipClick = null,
         scaleAnimationDuration = const Duration(milliseconds: 300),
@@ -526,6 +543,7 @@ class Showcase extends StatefulWidget {
         titleTextStyle = null,
         descTextStyle = null,
         tooltipBackgroundColor = Colors.white,
+        tooltipBackgroundGradient = null,
         textColor = Colors.black,
         tooltipBorderRadius = null,
         tooltipPadding = const EdgeInsets.symmetric(vertical: 8),
@@ -533,7 +551,7 @@ class Showcase extends StatefulWidget {
         descriptionPadding = null,
         titleTextDirection = null,
         descriptionTextDirection = null,
-        toolTipMargin = 14,
+        tooltipMargin = const EdgeInsets.symmetric(vertical: 8),
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
             "overlay opacity must be between 0 and 1."),
         assert(onBarrierClick == null || disableBarrierInteraction == false,
@@ -787,6 +805,7 @@ class _ShowcaseState extends State<Showcase> {
             descTextStyle: widget.descTextStyle,
             container: widget.container,
             tooltipBackgroundColor: widget.tooltipBackgroundColor,
+            tooltopBackgroundGradient: widget.tooltipBackgroundGradient,
             textColor: widget.textColor,
             showArrow: widget.showArrow,
             contentHeight: widget.height,
@@ -808,10 +827,14 @@ class _ShowcaseState extends State<Showcase> {
             descriptionPadding: widget.descriptionPadding,
             titleTextDirection: widget.titleTextDirection,
             descriptionTextDirection: widget.descriptionTextDirection,
-            toolTipSlideEndDistance: widget.toolTipSlideEndDistance,
-            toolTipMargin: widget.toolTipMargin,
+            tooltipSlideEndDistance: widget.tooltipSlideEndDistance,
+            tooltipMargin: widget.tooltipMargin,
             tooltipActionConfig: _getTooltipActionConfig(),
             tooltipActions: _getTooltipActions(),
+            currentStep: showCaseWidgetState.activeWidgetId ?? 0,
+            totalSteps: showCaseWidgetState.ids?.length ?? 0,
+            customUpArrow: widget.customUpArrow,
+            customDownArrow: widget.customDownArrow,
           ),
         ],
       ],
@@ -823,6 +846,9 @@ class _ShowcaseState extends State<Showcase> {
         ? widget.tooltipActions!
         : showCaseWidgetState.globalTooltipActions ?? [];
 
+    final isLastStep = showCaseWidgetState.activeWidgetId ==
+        (showCaseWidgetState.ids?.length ?? 0) - 1;
+
     final actionWidgets = <Widget>[];
     for (final action in actionData) {
       /// This checks that if current widget is being showcased and there is
@@ -833,6 +859,11 @@ class _ShowcaseState extends State<Showcase> {
           (widget.tooltipActions?.isEmpty ?? true)) {
         continue;
       }
+
+      if (isLastStep && action.type == TooltipDefaultActionType.skip) {
+        continue;
+      }
+
       actionWidgets.add(
         Padding(
           padding: EdgeInsetsDirectional.only(
@@ -846,6 +877,7 @@ class _ShowcaseState extends State<Showcase> {
             // [TooltipActionButtonWidget] is not direct child of showcaseWidget
             // so it won't be able to get the state by using it's context
             showCaseState: showCaseWidgetState,
+            isLast: isLastStep,
           ),
         ),
       );

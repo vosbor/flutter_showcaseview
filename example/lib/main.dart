@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
           onStart: (index, key) {
             log('onStart: $index, $key');
           },
-          onComplete: (index, key) {
+          onComplete: (index, key, _) {
             log('onComplete: $index, $key');
             if (index == 4) {
               SystemChrome.setSystemUIOverlayStyle(
@@ -45,8 +45,8 @@ class MyApp extends StatelessWidget {
           builder: (context) => const MailPage(),
           globalTooltipActionConfig: const TooltipActionConfig(
             position: TooltipActionPosition.inside,
-            alignment: MainAxisAlignment.spaceBetween,
-            actionGap: 20,
+            alignment: MainAxisAlignment.end,
+            actionGap: 12,
           ),
           globalTooltipActions: [
             // Here we don't need previous action for the first showcase widget
@@ -212,7 +212,7 @@ class _MailPageState extends State<MailPage> {
                                       tooltipActionConfig:
                                           const TooltipActionConfig(
                                         alignment: MainAxisAlignment.end,
-                                        position: TooltipActionPosition.outside,
+                                        position: TooltipActionPosition.inside,
                                         gapBetweenContentAndAction: 10,
                                       ),
                                       child: GestureDetector(
@@ -260,7 +260,7 @@ class _MailPageState extends State<MailPage> {
                       tooltipActionConfig: const TooltipActionConfig(
                         alignment: MainAxisAlignment.spaceBetween,
                         gapBetweenContentAndAction: 10,
-                        position: TooltipActionPosition.outside,
+                        position: TooltipActionPosition.inside,
                       ),
                       tooltipActions: const [
                         TooltipActionButton(
@@ -422,7 +422,7 @@ class _MailPageState extends State<MailPage> {
           tooltipActionConfig: const TooltipActionConfig(
             alignment: MainAxisAlignment.spaceBetween,
             actionGap: 16,
-            position: TooltipActionPosition.outside,
+            position: TooltipActionPosition.inside,
             gapBetweenContentAndAction: 16,
           ),
           tooltipActions: [
